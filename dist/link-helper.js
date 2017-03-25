@@ -81,27 +81,35 @@ var processLinks = function(links) {
 	}
 }
 
-processLinks(allLinks);
+// Check to see if the plugin is enabled for this domain
+chrome.storage.sync.get(function(settings) {
+	var enabledDomains = settings.enabledDomains || [];
+	var domainExists = enabledDomains.indexOf(location.host) > -1;
 
-// Listen for links that are added after the page loads
-var observer = new MutationObserver(function(mutations) {
-	for (var mutation of mutations) {
-		if (mutation.addedNodes) {
-			for (nextNode of mutation.addedNodes) {
-				if (nextNode.nodeType === Node.ELEMENT_NODE) {
-					var nodeLinks = nextNode.querySelectorAll('a:not([data-olint])');
-					if (nodeLinks.length) {
-						//console.log('Added links:');
-						//console.log(nodeLinks);
-						processLinks(nodeLinks);
+	if (domainExists) {
+		processLinks(allLinks);
+
+		// Listen for links that are added after the page loads
+		var observer = new MutationObserver(function(mutations) {
+			for (var mutation of mutations) {
+				if (mutation.addedNodes) {
+					for (nextNode of mutation.addedNodes) {
+						if (nextNode.nodeType === Node.ELEMENT_NODE) {
+							var nodeLinks = nextNode.querySelectorAll('a:not([data-olint])');
+							if (nodeLinks.length) {
+								//console.log('Added links:');
+								//console.log(nodeLinks);
+								processLinks(nodeLinks);
+							}
+						}
 					}
 				}
 			}
-		}
-	}
-});
+		});
 
-observer.observe(document.body, {
-	childList: true,
-	subtree: true
+		observer.observe(document.body, {
+			childList: true,
+			subtree: true
+		});
+	}
 });

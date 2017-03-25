@@ -1,0 +1,15 @@
+body {
+    min-width: 260px;
+    text-align: center;
+    margin: 0;
+    padding: 40px 20px;
+}
+
+h1 {
+    font-family: sans-serif;
+    font-size: 20px;
+}
+
+.current-domain {
+    font-weight: bold;
+}
