@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	};
 
-	chrome.tabs.getSelected(null, function(tab) {
+	chrome.tabs.query({active: true}, function(tabs) {
+		var tab = tabs[0];
 		updateIcon(tab);
 	});
 

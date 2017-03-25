@@ -18,7 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 
-	chrome.tabs.getSelected(null, function(tab) {
+	chrome.tabs.query({active: true}, function(tabs) {
+		var tab = tabs[0];
+
 		currentUrl = new URL(tab.url);
 		currentDomain = currentUrl.host;
 		document.querySelector('#domain').innerHTML = currentDomain;
@@ -46,10 +48,14 @@ document.addEventListener('DOMContentLoaded', function() {
 				enabledDomains.push(currentDomain);
 			}
 
-			setIcon(checked);
-
 			chrome.storage.sync.set({
 				enabledDomains: enabledDomains
+			});
+
+			setIcon(checked);
+
+			chrome.tabs.query({active: true}, function(tab) {
+				chrome.tabs.reload(tab.tabId);
 			});
 		});
 
