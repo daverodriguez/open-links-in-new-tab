@@ -123,8 +123,6 @@ chrome.storage.sync.get(function(settings) {
 						if (nextNode.nodeType === Node.ELEMENT_NODE) {
 							var nodeLinks = nextNode.querySelectorAll('a:not([data-olint])');
 							if (nodeLinks.length) {
-								//console.log('Added links:');
-								//console.log(nodeLinks);
 								processLinks(nodeLinks);
 							}
 						}

@@ -44,6 +44,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	});
 
+	chrome.tabs.onUpdated.addListener(function(id, change, tab) {
+		updateIcon(tab);
+	});
+
 	chrome.tabs.onRemoved.addListener(function(tab) {
 		lastOpenedTab = null;
 	});
