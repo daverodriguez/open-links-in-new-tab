@@ -6,13 +6,17 @@ document.addEventListener('DOMContentLoaded', function() {
 			document.querySelector('#enabled').setAttribute('checked', true);
 			chrome.browserAction.setIcon({
 				path: {
-					16: 'icon-enabled.png'
+					16: 'icon-enabled.png',
+					32: 'icon-enabled-32.png',
+					64: 'icon-enabled-64.png'
 				}
 			});
 		} else {
 			chrome.browserAction.setIcon({
 				path: {
-					16: 'icon-disabled.png'
+					16: 'icon-disabled.png',
+					32: 'icon-disabled-32.png',
+					64: 'icon-disabled-64.png'
 				}
 			});
 		}
