@@ -6,7 +6,7 @@ var debug = [
 	'url',
 	'ancestor'
 ];
-var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i];
+var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i, /facebook\.com/i, /twitter\.com/i, /rss[2\/]?/i];
 var excludedText = [/^next/i, /^[^a-zA-Z\d]?prev(ious)?/i, /older/i, /newer/i, /next page$/i, /^next$/i,
 					/sign in/i, /log in/i, /sign up/i, /^[0-9]+$/, /^<$/, /^>$/, /^more/i, /load more/i,
 					/see more/i, /view more/i
@@ -15,7 +15,8 @@ var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav', '[role=na
 	'.twitter', '.pinterest'
 ];
 var excludedClasses = [/toggle/i, /signup/i, /register/i, /dropdown/i, /facebook/i, /twitter/i, /pinterest/i,
-						/next/i, /prev(ious)?/i, /enlarge/i, /zoom/i, /social/i, /comment-count/i, /icon/i
+						/next/i, /prev(ious)?/i, /enlarge/i, /zoom/i, /social/i, /comment-count/i, /icon/i,
+						/play-button/i, /fa-[a-zA-Z]/i, /icon-[a-zA-Z]/i
 ];
 
 var allLinks = document.querySelectorAll('a:not([data-olint])');
@@ -23,7 +24,7 @@ var allLinks = document.querySelectorAll('a:not([data-olint])');
 var processLinks = function(links) {
 	for (var nextLink of links) {
 		var excluded = false;
-		var linkText = nextLink.innerHTML;
+		var linkText = nextLink.text.trim();
 
 		nextLink.setAttribute('data-olint', '');
 
@@ -35,14 +36,15 @@ var processLinks = function(links) {
 			}
 		}*/
 
-		// Exclude all links with no text, because who knows what they are
-		/*if (!excluded && linkText === '') {
-			excluded = true;
+		if (!excluded && linkText === '') {
+			nextLink.setAttribute('data-olint-empty', '');
+
+			/*excluded = true;
 			if (debug && debug.indexOf('linkText') > -1) {
 				nextLink.setAttribute('data-olint-excluded', 'linkText');
 				nextLink.setAttribute('data-olint-match', 'empty');
-			}
-		}*/
+			}*/
+		}
 
 		/*if (nextLink.getAttribute('rel') && nextLink.getAttribute('rel') === 'nofollow') {
 			excluded = true;

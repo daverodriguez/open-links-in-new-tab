@@ -2,9 +2,35 @@ a[data-olint]:not([data-olint-excluded])::after {
 	content: '';
 	position: relative;
 	display: inline-block;
-	width: 0.66em;
-	height: 0.66em;
+	width: 0.75em;
+	height: 0.75em;
 	background: url(chrome-extension://__MSG_@@extension_id__/img/olint-link.svg) 50% 50% no-repeat;
 	display: inline-block;
 	margin-left: 0.25em;
+	z-index: 100;
+}
+
+a[data-olint][data-olint-empty]:not([data-olint-excluded]) {
+	position: relative;
+	display: inline-block;
+}
+
+a[data-olint][data-olint-empty]::after {
+	display: block;
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 1.25em;
+	height: 1.25em;
+	background-color: #fff;
+	padding: 0.25em;
+	border-radius: 20%;
+	background-size: contain;
+	opacity: 0.8;
+	transition: opacity 0.25s ease;
+}
+
+a[data-olint][data-olint-empty]:hover::after {
+	opacity: 1;
 }
