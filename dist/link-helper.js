@@ -13,8 +13,8 @@ var processLinks = function(links) {
 		var excluded = false;
 		var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i];
 		var excludedText = [/^next/i, /^[^a-zA-Z\d]?previous/i, /older/i, /newer/i, /next page$/i, /^next$/i, /sign in/i, /log in/i, /sign up/i];
-		var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav', '[role=navigation]'];
-		var excludedClasses = [/toggle/i, /signup/i, /register/i, /dropdown/i];
+		var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav', '[role=navigation]', '.facebook', '.twitter', '.pinterest'];
+		var excludedClasses = [/toggle/i, /signup/i, /register/i, /dropdown/i, /facebook/i, /twitter/i, /pinterest/i];
 		var linkText = nextLink.innerHTML;
 
 		nextLink.setAttribute('data-olint', '');
