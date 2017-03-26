@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Open Links in New Tab",
   "description": "A helper extension that makes in-page links open in a new tab",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "permissions": [
     "storage",
     "tabs",
