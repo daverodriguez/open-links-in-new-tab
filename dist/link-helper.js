@@ -12,9 +12,9 @@ var processLinks = function(links) {
 	for (var nextLink of links) {
 		var excluded = false;
 		var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i];
-		var excludedText = [/^next/i, /^[^a-zA-Z\d]?previous/i, /older/i, /newer/i, /next page$/i, /^next$/i, /sign in/i, /log in/i];
+		var excludedText = [/^next/i, /^[^a-zA-Z\d]?previous/i, /older/i, /newer/i, /next page$/i, /^next$/i, /sign in/i, /log in/i, /sign up/i];
 		var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav', '[role=navigation]'];
-		var excludedClasses = [/toggle/i];
+		var excludedClasses = [/toggle/i, /signup/i, /register/i, /dropdown/i];
 		var linkText = nextLink.innerHTML;
 
 		nextLink.setAttribute('data-olint', '');
@@ -75,7 +75,7 @@ var processLinks = function(links) {
 			for (var nextClass of excludedClasses) {
 				if (nextClass.test(nextLink.className)) {
 					excluded = true;
-					if (debug && debug.indexOf('clas') > -1) {
+					if (debug && debug.indexOf('class') > -1) {
 						nextLink.setAttribute('data-olint-excluded', 'class');
 						nextLink.setAttribute('data-olint-match', nextClass);
 					}
