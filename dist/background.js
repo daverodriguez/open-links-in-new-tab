@@ -82,4 +82,17 @@ document.addEventListener('DOMContentLoaded', function() {
 			});
 		}
 	});
+
+	// Add context menu items
+	chrome.contextMenus.create({
+		type: chrome.contextMenus.ItemType.NORMAL,
+		title: 'Open in this tab',
+		contexts: [chrome.contextMenus.ContextType.LINK],
+		onclick: function(context) {
+			chrome.tabs.query({active: true}, function(tabs) {
+				var tab = tabs[0];
+				chrome.tabs.update(tab.id, {url: context.linkUrl} );
+			});
+		}
+	});
 });

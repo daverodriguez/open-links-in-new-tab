@@ -2,13 +2,19 @@
   "manifest_version": 2,
   "name": "Open Links in New Tab",
   "description": "A helper extension that makes in-page links open in a new tab",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "permissions": [
     "storage",
     "tabs",
     "background",
-    "webNavigation"
+    "webNavigation",
+    "contextMenus"
   ],
+  "icons": {
+    "16": "img/icon-enabled.png",
+    "32": "img/icon-enabled-32.png",
+    "64": "img/icon-enabled-64.png"
+  },
   "background": {
     "scripts": ["background.js"]
   },
