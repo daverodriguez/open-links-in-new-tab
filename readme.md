@@ -1,4 +1,4 @@
-![dist/img/icon-128.png]
+![Open Links in New Tab Logo](dist/img/icon-128.png)
 
 # Open Links in New Tab
 
