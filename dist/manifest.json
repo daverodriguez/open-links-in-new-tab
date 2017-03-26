@@ -25,5 +25,8 @@
       "js": ["link-helper.js"],
       "css": ["link-helper.css"]
     }
+  ],
+  "web_accessible_resources": [
+    "olint-link.svg"
   ]
 }

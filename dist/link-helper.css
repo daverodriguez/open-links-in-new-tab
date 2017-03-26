@@ -1,5 +1,10 @@
 a[data-olint]:not([data-olint-excluded])::after {
-	content: '\2197';
-	color: #090;
-	padding-left: 0.25em;
+	content: '';
+	position: relative;
+	display: inline-block;
+	width: 0.66em;
+	height: 0.66em;
+	background: url(chrome-extension://__MSG_@@extension_id__/olint-link.svg) 50% 50% no-repeat;
+	display: inline-block;
+	margin-left: 0.25em;
 }

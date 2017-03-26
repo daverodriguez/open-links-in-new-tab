@@ -11,10 +11,10 @@ var allLinks = document.querySelectorAll('a:not([data-olint])');
 var processLinks = function(links) {
 	for (var nextLink of links) {
 		var excluded = false;
-		var excludedUrls = [/^#/, /^\/$/, /^mailto:/];
-		var excludedText = [/^next/i, /^[^a-zA-Z\d]?previous/i, /older/i, /newer/i, /next page$/i, /^next$/i];
+		var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i];
+		var excludedText = [/^next/i, /^[^a-zA-Z\d]?previous/i, /older/i, /newer/i, /next page$/i, /^next$/i, /sign in/i, /log in/i];
 		var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav', '[role=navigation]'];
-		var excludedClasses = [/toggle/];
+		var excludedClasses = [/toggle/i];
 		var linkText = nextLink.innerHTML;
 
 		nextLink.setAttribute('data-olint', '');
@@ -38,6 +38,14 @@ var processLinks = function(links) {
 
 		// Check and exclude all matching URL patterns
 		if (!excluded) {
+			if (nextLink.pathname === '/') {
+				excluded = true;
+				if (debug && debug.indexOf('url') > -1) {
+					nextLink.setAttribute('data-olint-excluded', 'url');
+					nextLink.setAttribute('data-olint-match', 'site-root');
+				}
+			}
+
 			for (var nextUrlPattern of excludedUrls) {
 				if ( nextUrlPattern.test( nextLink.getAttribute('href') ) ) {
 					excluded = true;
