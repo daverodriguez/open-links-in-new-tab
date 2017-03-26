@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	};
 
+	var setStateLabel = function(checked) {
+		document.querySelector('#state').innerHTML = checked ? 'Enabled' : 'Enable';
+	};
+
 	chrome.tabs.query({active: true}, function(tabs) {
 		var tab = tabs[0];
 
@@ -29,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			var enabledDomains = settings.enabledDomains || [];
 			var domainExists = enabledDomains.indexOf(currentDomain) > -1;
 			setIcon(domainExists);
+			setStateLabel(domainExists);
 		});
 	});
 
@@ -53,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			});
 
 			setIcon(checked);
+			setStateLabel(checked);
 
 			chrome.tabs.query({active: true}, function(tab) {
 				chrome.tabs.reload(tab.tabId);

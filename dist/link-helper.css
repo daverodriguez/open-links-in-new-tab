@@ -1,0 +1,5 @@
+a[data-olint]:not([data-olint-excluded])::after {
+	content: '\2197';
+	color: #090;
+	padding-left: 0.25em;
+}

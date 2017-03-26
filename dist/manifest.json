@@ -1,12 +1,13 @@
 {
   "manifest_version": 2,
-  "name": "Open links in new tab",
-  "description": "A helper extension that causes all links to open in a new tab",
-  "version": "1.0",
+  "name": "Open Links in New Tab",
+  "description": "A helper extension that makes in-page links open in a new tab",
+  "version": "0.1.1",
   "permissions": [
     "storage",
     "tabs",
-    "background"
+    "background",
+    "webNavigation"
   ],
   "background": {
     "scripts": ["background.js"]
@@ -21,7 +22,8 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["link-helper.js"]
+      "js": ["link-helper.js"],
+      "css": ["link-helper.css"]
     }
   ]
 }

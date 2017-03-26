@@ -1,6 +1,7 @@
 var debug = [
 	'host',
 	'linkText',
+	'class',
 	'url',
 	'ancestor'
 ];
@@ -11,8 +12,9 @@ var processLinks = function(links) {
 	for (var nextLink of links) {
 		var excluded = false;
 		var excludedUrls = [/^#/, /^\/$/, /^mailto:/];
-		var excludedText = [/^next/i, /^[^a-zA-Z\d]?previous/i, /older/i, /newer/i, /page$/i, /more$/i];
-		var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav'];
+		var excludedText = [/^next/i, /^[^a-zA-Z\d]?previous/i, /older/i, /newer/i, /next page$/i, /^next$/i];
+		var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav', '[role=navigation]'];
+		var excludedClasses = [/toggle/];
 		var linkText = nextLink.innerHTML;
 
 		nextLink.setAttribute('data-olint', '');
@@ -26,13 +28,13 @@ var processLinks = function(links) {
 		}*/
 
 		// Exclude all links with no text, because who knows what they are
-		if (!excluded && linkText === '') {
+		/*if (!excluded && linkText === '') {
 			excluded = true;
 			if (debug && debug.indexOf('linkText') > -1) {
 				nextLink.setAttribute('data-olint-excluded', 'linkText');
 				nextLink.setAttribute('data-olint-match', 'empty');
 			}
-		}
+		}*/
 
 		// Check and exclude all matching URL patterns
 		if (!excluded) {
@@ -60,6 +62,19 @@ var processLinks = function(links) {
 			}
 		}
 
+		// Check and exclude all matching link classes
+		if (!excluded) {
+			for (var nextClass of excludedClasses) {
+				if (nextClass.test(nextLink.className)) {
+					excluded = true;
+					if (debug && debug.indexOf('clas') > -1) {
+						nextLink.setAttribute('data-olint-excluded', 'class');
+						nextLink.setAttribute('data-olint-match', nextClass);
+					}
+				}
+			}
+		}
+
 		// Check and exclude based on ancestors: this might be things like main navigation links or links
 		// in the site header
 		if (!excluded) {
@@ -76,7 +91,10 @@ var processLinks = function(links) {
 
 		// If we haven't excluded it yet, add target="_blank" so it opens in a new tab
 		if (!excluded) {
-			nextLink.target = '_blank';
+			nextLink.addEventListener('click', function(e) {
+				e.preventDefault();
+				chrome.runtime.sendMessage( { message:'openTab', url: e.target.href } );
+			});
 		}
 	}
 }
