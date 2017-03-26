@@ -14,9 +14,9 @@
   },
   "browser_action": {
     "default_icon": {
-      "16": "icon-disabled.png",
-      "32": "icon-disabled-32.png",
-      "64": "icon-disabled-64.png"
+      "16": "img/icon-disabled.png",
+      "32": "img/icon-disabled-32.png",
+      "64": "img/icon-disabled-64.png"
     },
     "default_title": "Open Links in New Tab",
     "default_popup": "popup.html"
@@ -29,6 +29,6 @@
     }
   ],
   "web_accessible_resources": [
-    "olint-link.svg"
+    "img/olint-link.svg"
   ]
 }
