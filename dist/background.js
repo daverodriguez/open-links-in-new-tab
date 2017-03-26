@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 
 	chrome.tabs.onActivated.addListener(function(tab) {
+		lastOpenedTab = null;
+
 		chrome.tabs.get(tab.tabId, function(tab) {
 			updateIcon(tab);
 		});
