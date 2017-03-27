@@ -56,7 +56,7 @@ var processLinks = function(links) {
 
 		// Check and exclude all matching URL patterns
 		if (!excluded) {
-			if (nextLink.pathname === '/') {
+			if (nextLink.host === location.host && nextLink.pathname === '/') {
 				excluded = true;
 				if (debug && debug.indexOf('url') > -1) {
 					nextLink.setAttribute('data-olint-excluded', 'url');
