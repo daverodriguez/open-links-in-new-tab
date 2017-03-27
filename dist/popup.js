@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		document.querySelector('#state').innerHTML = checked ? 'Enabled' : 'Enable';
 	};
 
-	chrome.tabs.query({active: true}, function(tabs) {
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 		var tab = tabs[0];
 
 		currentUrl = new URL(tab.url);
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			setIcon(checked);
 			setStateLabel(checked);
 
-			chrome.tabs.query({active: true}, function(tab) {
+			chrome.tabs.query({active: true, currentWindow: true}, function(tab) {
 				chrome.tabs.reload(tab.tabId);
 			});
 		});

@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	};
 
-	chrome.tabs.query({active: true}, function(tabs) {
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 		var tab = tabs[0];
 		updateIcon(tab);
 	});
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		if (request.message && request.message === 'openTab' && request.url) {
 
-			chrome.tabs.query({active: true}, function(tabs) {
+			chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 
 				var activeTabIndex = 0;
 
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		title: 'Open in this tab',
 		contexts: [chrome.contextMenus.ContextType.LINK],
 		onclick: function(context) {
-			chrome.tabs.query({active: true}, function(tabs) {
+			chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 				var tab = tabs[0];
 				chrome.tabs.update(tab.id, {url: context.linkUrl} );
 			});
