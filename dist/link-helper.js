@@ -42,7 +42,7 @@ var processLinks = function(links) {
 		}
 
 		if (!excluded && nextLink.target) {
-			excluded = true;
+			//excluded = true;
 			softExcluded = true;
 			nextLink.setAttribute('data-olint-soft-excluded', 'target');
 		}
@@ -108,14 +108,16 @@ var processLinks = function(links) {
 
 		// Check and exclude based on link target size
 		if (!excluded) {
-			if (nextLink.offsetWidth <= 1) {
+			var dims = nextLink.getBoundingClientRect();
+			var size = dims.width * dims.height;
+			if (size < 16) {
 				excluded = true;
 				nextLink.setAttribute('data-olint-excluded', 'dimensions');
 			}
 		}
 
 		// Add the OLINT marker element
-		if (softExcluded || !excluded) {
+		if (!excluded) {
 			// Find the longest text node inside this link
 			var longestNode = null;
 			var getTextNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_TEXT);
@@ -144,6 +146,7 @@ var processLinks = function(links) {
 			// Add click handler
 			nextLink.addEventListener('click', function(e) {
 				e.preventDefault();
+				e.stopPropagation();
 				var link = e.target.closest('[data-olint]');
 
 				chrome.runtime.sendMessage( { message:'openTab', url: link.href } );
@@ -152,33 +155,43 @@ var processLinks = function(links) {
 	}
 };
 
-// Check to see if the plugin is enabled for this domain
-chrome.storage.sync.get(function(settings) {
-	var enabledDomains = settings.enabledDomains || [];
-	var domainExists = enabledDomains.indexOf(location.host) > -1;
+var init = function() {
+	// Check to see if the plugin is enabled for this domain
+	chrome.storage.sync.get(function(settings) {
+		var enabledDomains = settings.enabledDomains || [];
+		var domainExists = enabledDomains.indexOf(location.host) > -1;
 
-	if (domainExists) {
-		processLinks(allLinks);
+		if (domainExists) {
+			processLinks(allLinks);
 
-		// Listen for links that are added after the page loads
-		var observer = new MutationObserver(function(mutations) {
-			for (var mutation of mutations) {
-				if (mutation.addedNodes) {
-					for (nextNode of mutation.addedNodes) {
-						if (nextNode.nodeType === Node.ELEMENT_NODE) {
-							var nodeLinks = nextNode.querySelectorAll('a:not([data-olint])');
-							if (nodeLinks.length) {
-								processLinks(nodeLinks);
+			// Listen for links that are added after the page loads
+			var observer = new MutationObserver(function(mutations) {
+				for (var mutation of mutations) {
+					if (mutation.addedNodes) {
+						for (nextNode of mutation.addedNodes) {
+							if (nextNode.nodeType === Node.ELEMENT_NODE) {
+								var nodeLinks = nextNode.querySelectorAll('a:not([data-olint])');
+								if (nodeLinks.length) {
+									processLinks(nodeLinks);
+								}
 							}
 						}
 					}
 				}
-			}
-		});
+			});
 
-		observer.observe(document.body, {
-			childList: true,
-			subtree: true
-		});
-	}
-});
+			observer.observe(document.body, {
+				childList: true,
+				subtree: true
+			});
+		}
+	});
+}
+
+if (document.fonts.size && document.fonts.size > 0) {
+	document.fonts.ready.then(function() {
+		init();
+	})
+} else {
+	init();
+}
