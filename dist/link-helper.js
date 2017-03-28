@@ -1,12 +1,5 @@
-var debug = [
-	'host',
-	'linkText',
-	'rel',
-	'class',
-	'url',
-	'ancestor'
-];
-var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i, /facebook\.com/i, /twitter\.com/i, /rss[2\/]?/i];
+var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i, /facebook\.com/i, /twitter\.com/i, /rss[2\/]?/i,
+					/javascript:/i];
 var excludedText = [/^next/i, /^[^a-zA-Z\d]?prev(ious)?/i, /older/i, /newer/i, /next page$/i, /^next$/i,
 					/sign in/i, /log in/i, /sign up/i, /^[0-9]+$/, /^<$/, /^>$/, /^more/i, /load more/i,
 					/see more/i, /view more/i
@@ -46,6 +39,11 @@ var processLinks = function(links) {
 			}*/
 		}
 
+		if (!excluded && nextLink.target) {
+			excluded = true;
+			nextLink.setAttribute('data-olint-excluded', 'target');
+		}
+
 		/*if (nextLink.getAttribute('rel') && nextLink.getAttribute('rel') === 'nofollow') {
 			excluded = true;
 			if (debug && debug.indexOf('rel') > -1) {
@@ -58,19 +56,15 @@ var processLinks = function(links) {
 		if (!excluded) {
 			if (nextLink.host === location.host && nextLink.pathname === '/') {
 				excluded = true;
-				if (debug && debug.indexOf('url') > -1) {
-					nextLink.setAttribute('data-olint-excluded', 'url');
-					nextLink.setAttribute('data-olint-match', 'site-root');
-				}
+				nextLink.setAttribute('data-olint-excluded', 'url');
+				nextLink.setAttribute('data-olint-match', 'site-root');
 			}
 
 			for (var nextUrlPattern of excludedUrls) {
 				if ( nextUrlPattern.test( nextLink.getAttribute('href') ) ) {
 					excluded = true;
-					if (debug && debug.indexOf('url') > -1) {
-						nextLink.setAttribute('data-olint-excluded', 'url');
-						nextLink.setAttribute('data-olint-match', nextUrlPattern);
-					}
+					nextLink.setAttribute('data-olint-excluded', 'url');
+					nextLink.setAttribute('data-olint-match', nextUrlPattern);
 				}
 			}
 		}
@@ -80,10 +74,8 @@ var processLinks = function(links) {
 			for (var nextPattern of excludedText) {
 				if (nextPattern.test(linkText)) {
 					excluded = true;
-					if (debug && debug.indexOf('linkText') > -1) {
-						nextLink.setAttribute('data-olint-excluded', 'linkText');
-						nextLink.setAttribute('data-olint-match', nextPattern);
-					}
+					nextLink.setAttribute('data-olint-excluded', 'linkText');
+					nextLink.setAttribute('data-olint-match', nextPattern);
 				}
 			}
 		}
@@ -93,10 +85,8 @@ var processLinks = function(links) {
 			for (var nextClass of excludedClasses) {
 				if (nextClass.test(nextLink.className)) {
 					excluded = true;
-					if (debug && debug.indexOf('class') > -1) {
-						nextLink.setAttribute('data-olint-excluded', 'class');
-						nextLink.setAttribute('data-olint-match', nextClass);
-					}
+					nextLink.setAttribute('data-olint-excluded', 'class');
+					nextLink.setAttribute('data-olint-match', nextClass);
 				}
 			}
 		}
@@ -107,10 +97,8 @@ var processLinks = function(links) {
 			for (var nextAncestor of excludedAncestors) {
 				if (nextLink.closest(nextAncestor)) {
 					excluded = true;
-					if (debug && debug.indexOf('ancestor') > -1) {
-						nextLink.setAttribute('data-olint-excluded', 'ancestor');
-						nextLink.setAttribute('data-olint-match', nextAncestor);
-					}
+					nextLink.setAttribute('data-olint-excluded', 'ancestor');
+					nextLink.setAttribute('data-olint-match', nextAncestor);
 				}
 			}
 		}
@@ -123,7 +111,7 @@ var processLinks = function(links) {
 			});
 		}
 	}
-}
+};
 
 // Check to see if the plugin is enabled for this domain
 chrome.storage.sync.get(function(settings) {

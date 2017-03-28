@@ -7,7 +7,6 @@ a[data-olint]:not([data-olint-excluded])::after {
 	background: url(chrome-extension://__MSG_@@extension_id__/img/olint-link.svg) 50% 50% no-repeat;
 	display: inline-block;
 	margin-left: 0.25em;
-	z-index: 100;
 }
 
 a[data-olint][data-olint-empty]:not([data-olint-excluded]) {
