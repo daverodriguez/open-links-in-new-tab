@@ -1,27 +1,28 @@
-a[data-olint]:not([data-olint-excluded])::after {
-	content: '';
+.olint-marker {
 	position: relative;
-	display: inline-block;
-	width: 0.75em;
-	height: 0.75em;
+	display: inline-block !important;
+	visibility: visible !important;
+	width: 0.75em !important;
+	height: 0.75em !important;
 	background: url(chrome-extension://__MSG_@@extension_id__/img/olint-link.svg) 50% 50% no-repeat;
-	display: inline-block;
 	margin-left: 0.25em;
 }
 
 a[data-olint][data-olint-empty]:not([data-olint-excluded]) {
-	position: relative;
-	display: inline-block;
+	/*position: relative;
+	display: inline-block;*/
 }
 
-a[data-olint][data-olint-empty]::after {
+[data-olint-empty] .olint-marker {
 	display: block;
 	position: absolute;
 	bottom: 0;
 	left: 50%;
 	transform: translateX(-50%);
 	width: 1.25em;
+	min-width: 25px;
 	height: 1.25em;
+	min-height: 25px;
 	background-color: #fff;
 	padding: 0.25em;
 	border-radius: 20%;
@@ -30,6 +31,6 @@ a[data-olint][data-olint-empty]::after {
 	transition: opacity 0.25s ease;
 }
 
-a[data-olint][data-olint-empty]:hover::after {
+[data-olint-empty] .olint-marker {
 	opacity: 1;
 }

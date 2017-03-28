@@ -17,6 +17,8 @@ var allLinks = document.querySelectorAll('a:not([data-olint])');
 var processLinks = function(links) {
 	for (var nextLink of links) {
 		var excluded = false;
+		var softExcluded = false;   // "Soft-excluded" links already have a target attribute. Don't wire up a
+									// click handler, but still add the icon
 		var linkText = nextLink.text.trim();
 
 		nextLink.setAttribute('data-olint', '');
@@ -41,7 +43,8 @@ var processLinks = function(links) {
 
 		if (!excluded && nextLink.target) {
 			excluded = true;
-			nextLink.setAttribute('data-olint-excluded', 'target');
+			softExcluded = true;
+			nextLink.setAttribute('data-olint-soft-excluded', 'target');
 		}
 
 		/*if (nextLink.getAttribute('rel') && nextLink.getAttribute('rel') === 'nofollow') {
@@ -103,11 +106,47 @@ var processLinks = function(links) {
 			}
 		}
 
-		// If we haven't excluded it yet, add target="_blank" so it opens in a new tab
+		// Check and exclude based on link target size
 		if (!excluded) {
+			if (nextLink.offsetWidth <= 1) {
+				excluded = true;
+				nextLink.setAttribute('data-olint-excluded', 'dimensions');
+			}
+		}
+
+		// Add the OLINT marker element
+		if (softExcluded || !excluded) {
+			// Find the longest text node inside this link
+			var longestNode = null;
+			var getTextNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_TEXT);
+			while (getTextNodes.nextNode()) {
+				var nextNode = getTextNodes.currentNode;
+				if (!longestNode || nextNode.length > longestNode.length) {
+					longestNode = nextNode;
+				}
+			}
+
+			// Create an OLINT marker element (green "open in new tab" icon)
+			var olintMarker = document.createElement('i');
+			olintMarker.className = 'olint-marker';
+
+			// Add OLINT marker directly after the longest text node, or if none was found, append it as the last
+			// child of the link
+			if (longestNode) {
+				longestNode.parentNode.appendChild(olintMarker);
+			} else {
+				nextLink.appendChild(olintMarker);
+			}
+		}
+
+		// If we haven't excluded it yet, add the click handler so it opens in a new tab
+		if (!excluded) {
+			// Add click handler
 			nextLink.addEventListener('click', function(e) {
 				e.preventDefault();
-				chrome.runtime.sendMessage( { message:'openTab', url: e.target.href } );
+				var link = e.target.closest('[data-olint]');
+
+				chrome.runtime.sendMessage( { message:'openTab', url: link.href } );
 			});
 		}
 	}
