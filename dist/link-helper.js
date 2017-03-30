@@ -1,5 +1,5 @@
 var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i, /facebook\.com/i, /twitter\.com/i, /rss[2\/]?/i,
-					/javascript:/i];
+					/javascript:/i, /page=/i];
 var excludedText = [/^next/i, /^[^a-zA-Z\d]?prev(ious)?/i, /older/i, /newer/i, /next page$/i, /^next$/i,
 					/sign in/i, /log in/i, /sign up/i, /^[0-9]+$/, /^<$/, /^>$/, /^more/i, /load more/i,
 					/see more/i, /view more/i
@@ -9,7 +9,7 @@ var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav', '[role=na
 ];
 var excludedClasses = [/toggle/i, /signup/i, /register/i, /dropdown/i, /facebook/i, /twitter/i, /pinterest/i,
 						/next/i, /prev(ious)?/i, /enlarge/i, /zoom/i, /social/i, /comment-count/i, /icon/i,
-						/play-button/i, /fa-[a-zA-Z]/i, /icon-[a-zA-Z]/i
+						/play-button/i, /fa-[a-zA-Z]/i, /icon-[a-zA-Z]/i, /pager/i
 ];
 
 var allLinks = document.querySelectorAll('a:not([data-olint])');
@@ -23,22 +23,8 @@ var processLinks = function(links) {
 
 		nextLink.setAttribute('data-olint', '');
 
-		// Exclude links to a different domain
-		/*if (nextLink.host !== location.host) {
-			excluded = true;
-			if (debug && debug.indexOf('host') > -1) {
-				nextLink.setAttribute('data-olint-excluded', 'host');
-			}
-		}*/
-
 		if (!excluded && linkText === '') {
 			nextLink.setAttribute('data-olint-empty', '');
-
-			/*excluded = true;
-			if (debug && debug.indexOf('linkText') > -1) {
-				nextLink.setAttribute('data-olint-excluded', 'linkText');
-				nextLink.setAttribute('data-olint-match', 'empty');
-			}*/
 		}
 
 		if (!excluded && nextLink.target) {
@@ -118,6 +104,10 @@ var processLinks = function(links) {
 
 		// Add the OLINT marker element
 		if (!excluded) {
+			// Create an OLINT marker element (green "open in new tab" icon)
+			var olintMarker = document.createElement('i');
+			olintMarker.className = 'olint-marker';
+
 			// Find the longest text node inside this link
 			var longestNode = null;
 			var getTextNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_TEXT);
@@ -128,14 +118,32 @@ var processLinks = function(links) {
 				}
 			}
 
-			// Create an OLINT marker element (green "open in new tab" icon)
-			var olintMarker = document.createElement('i');
-			olintMarker.className = 'olint-marker';
+			// If there's still no longest node, maybe this is an image
+			var isImageNode = false;
+
+			if (!longestNode) {
+				var getImageNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_ELEMENT);
+				while (getImageNodes.nextNode()) {
+					var nextNode = getImageNodes.currentNode;
+					if (nextNode.nodeName.toLowerCase() === 'img') {
+						longestNode = nextNode;
+						isImageNode = true;
+					}
+				}
+			}
 
 			// Add OLINT marker directly after the longest text node, or if none was found, append it as the last
 			// child of the link
 			if (longestNode) {
-				longestNode.parentNode.appendChild(olintMarker);
+				longestNode.parentNode.insertBefore(olintMarker, longestNode.nextSibling);
+
+				if (isImageNode) {
+					nextLink.setAttribute('data-olint-type', 'image');
+					var displayType = nextLink.style.display;
+					if (displayType == null || displayType === '' || displayType === 'inline') {
+						//nextLink.style.display = 'inline-block';
+					}
+				}
 			} else {
 				nextLink.appendChild(olintMarker);
 			}

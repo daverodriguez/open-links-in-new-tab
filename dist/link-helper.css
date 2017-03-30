@@ -6,11 +6,15 @@
 	height: 0.75em !important;
 	background: url(chrome-extension://__MSG_@@extension_id__/img/olint-link.svg) 50% 50% no-repeat;
 	margin-left: 0.25em;
+	background-color: #fff;
+	padding: 0.25em;
+	border-radius: 20%;
+	background-size: contain;
 }
 
 a[data-olint][data-olint-empty]:not([data-olint-excluded]) {
-	/*position: relative;
-	display: inline-block;*/
+	position: relative;
+	/*display: inline-block;*/
 }
 
 [data-olint-empty] .olint-marker {
@@ -23,10 +27,6 @@ a[data-olint][data-olint-empty]:not([data-olint-excluded]) {
 	min-width: 25px;
 	height: 1.25em;
 	min-height: 25px;
-	background-color: #fff;
-	padding: 0.25em;
-	border-radius: 20%;
-	background-size: contain;
 	opacity: 0.8;
 	transition: opacity 0.25s ease;
 }
