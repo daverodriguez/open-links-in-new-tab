@@ -1,20 +1,12 @@
-var excludedUrls = [/^#/, /^\/$/, /^mailto:/, /page\/[0-9]+$/i, /facebook\.com/i, /twitter\.com/i, /rss[2\/]?/i,
-					/javascript:/i, /page=/i];
-var excludedText = [/^next/i, /^[^a-zA-Z\d]?prev(ious)?/i, /older/i, /newer/i, /next page$/i, /^next$/i,
-					/sign in/i, /log in/i, /sign up/i, /^[0-9]+$/, /^<$/, /^>$/, /^more/i, /load more/i,
-					/see more/i, /view more/i
-];
-var excludedAncestors = ['.topbar', '#header', '[role=banner]', 'nav', '[role=navigation]', '.facebook',
-	'.twitter', '.pinterest'
-];
-var excludedClasses = [/toggle/i, /signup/i, /register/i, /dropdown/i, /facebook/i, /twitter/i, /pinterest/i,
-						/next/i, /prev(ious)?/i, /enlarge/i, /zoom/i, /social/i, /comment-count/i, /icon/i,
-						/play-button/i, /fa-[a-zA-Z]/i, /icon-[a-zA-Z]/i, /pager/i
-];
-
 var allLinks = document.querySelectorAll('a:not([data-olint])');
 
-var processLinks = function(links) {
+// Exclusions are now loaded at plugin runtime from exclusions.json
+var processLinks = function(links, exclusions) {
+	var excludedUrls = exclusions.urls;
+	var excludedAncestors = exclusions.ancestors;
+	var excludedClasses = exclusions.classes;
+	var excludedText = exclusions.text;
+
 	for (var nextLink of links) {
 		var excluded = false;
 		var softExcluded = false;   // "Soft-excluded" links already have a target attribute. Don't wire up a
@@ -50,7 +42,8 @@ var processLinks = function(links) {
 			}
 
 			for (var nextUrlPattern of excludedUrls) {
-				if ( nextUrlPattern.test( nextLink.getAttribute('href') ) ) {
+				nextUrlPattern = new RegExp(nextUrlPattern);
+				if ( nextUrlPattern.test(nextLink.getAttribute('href'), 'i') ) {
 					excluded = true;
 					nextLink.setAttribute('data-olint-excluded', 'url');
 					nextLink.setAttribute('data-olint-match', nextUrlPattern);
@@ -61,7 +54,8 @@ var processLinks = function(links) {
 		// Check and exclude all matching link text patterns
 		if (!excluded) {
 			for (var nextPattern of excludedText) {
-				if (nextPattern.test(linkText)) {
+				nextPattern = new RegExp(nextPattern);
+				if (nextPattern.test(linkText, 'i')) {
 					excluded = true;
 					nextLink.setAttribute('data-olint-excluded', 'linkText');
 					nextLink.setAttribute('data-olint-match', nextPattern);
@@ -72,7 +66,8 @@ var processLinks = function(links) {
 		// Check and exclude all matching link classes
 		if (!excluded) {
 			for (var nextClass of excludedClasses) {
-				if (nextClass.test(nextLink.className)) {
+				nextClass = new RegExp(nextClass);
+				if (nextClass.test(nextLink.className, 'i')) {
 					excluded = true;
 					nextLink.setAttribute('data-olint-excluded', 'class');
 					nextLink.setAttribute('data-olint-match', nextClass);
@@ -113,7 +108,13 @@ var processLinks = function(links) {
 			var getTextNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_TEXT);
 			while (getTextNodes.nextNode()) {
 				var nextNode = getTextNodes.currentNode;
-				if (!longestNode || nextNode.length > longestNode.length) {
+				var nextNodeExcluded = false;
+
+				if (nextNode.parentNode.nodeName.toLowerCase() === 'noscript') {
+					nextNodeExcluded = true;
+				}
+
+				if (!longestNode || nextNode.length > longestNode.length || !nextNodeExcluded) {
 					longestNode = nextNode;
 				}
 			}
@@ -121,7 +122,7 @@ var processLinks = function(links) {
 			// If there's still no longest node, maybe this is an image
 			var isImageNode = false;
 
-			if (!longestNode) {
+			if (!longestNode || longestNode.nodeValue.trim() === '') {
 				var getImageNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_ELEMENT);
 				while (getImageNodes.nextNode()) {
 					var nextNode = getImageNodes.currentNode;
@@ -135,7 +136,11 @@ var processLinks = function(links) {
 			// Add OLINT marker directly after the longest text node, or if none was found, append it as the last
 			// child of the link
 			if (longestNode) {
-				longestNode.parentNode.insertBefore(olintMarker, longestNode.nextSibling);
+				if (longestNode.nextSibling) {
+					longestNode.parentNode.insertBefore(olintMarker, longestNode.nextSibling);
+				} else {
+					longestNode.parentNode.appendChild(olintMarker);
+				}
 
 				if (isImageNode) {
 					nextLink.setAttribute('data-olint-type', 'image');
@@ -157,7 +162,7 @@ var processLinks = function(links) {
 				e.stopPropagation();
 				var link = e.target.closest('[data-olint]');
 
-				chrome.runtime.sendMessage( { message:'openTab', url: link.href } );
+				chrome.runtime.sendMessage( { message: 'openTab', url: link.href } );
 			});
 		}
 	}
@@ -170,7 +175,11 @@ var init = function() {
 		var domainExists = enabledDomains.indexOf(location.host) > -1;
 
 		if (domainExists) {
-			processLinks(allLinks);
+			// Get the list of exclusions. Later we might merge in some excluded patterns from the user's
+			// synced settings here
+			chrome.runtime.sendMessage( { message: 'getExclusions' }, function(exclusions) {
+				processLinks(allLinks, exclusions);
+			});
 
 			// Listen for links that are added after the page loads
 			var observer = new MutationObserver(function(mutations) {
@@ -180,7 +189,10 @@ var init = function() {
 							if (nextNode.nodeType === Node.ELEMENT_NODE) {
 								var nodeLinks = nextNode.querySelectorAll('a:not([data-olint])');
 								if (nodeLinks.length) {
-									processLinks(nodeLinks);
+
+									chrome.runtime.sendMessage( { message: 'getExclusions' }, function(exclusions) {
+										processLinks(nodeLinks, exclusions);
+									});
 								}
 							}
 						}
