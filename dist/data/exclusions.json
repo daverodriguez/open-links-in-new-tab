@@ -1,13 +1,13 @@
 {
   "all": {
     "urls": [
-      "^#/", "^$", "^mailto:", "page/[0-9]+$", "facebook.com", "twitter.com", "rss[2/]?",
-      "javascript:", "page="
+      "^#/", "^$", "^mailto:", "page/[0-9]+\/?", "facebook.com", "twitter.com", "rss[2/]?",
+      "javascript:", "^[/?]?page="
     ],
     "text": [
       "^next", "^[^a-zA-Z\\d]?prev(ious)?", "older", "newer", "next page$", "sign in",
       "log in", "sign up", "^[0-9]+$", "^<$", "^>$", "^more", "load more", "see more",
-      "view more"
+      "view more", "more stories"
     ],
     "ancestors": [
       ".topbar", "#header", "[role=banner]", "nav", "[role=navigation]", ".facebook", ".twitter", ".pinterest",

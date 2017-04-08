@@ -1,5 +1,3 @@
-var allLinks = document.querySelectorAll('a:not([data-olint])');
-
 // Exclusions are now loaded at plugin runtime from exclusions.json
 var processLinks = function(links, exclusions) {
 	var excludedUrls = exclusions.urls;
@@ -9,14 +7,16 @@ var processLinks = function(links, exclusions) {
 
 	for (var nextLink of links) {
 		var excluded = false;
+		var isEmpty = false;
 		var softExcluded = false;   // "Soft-excluded" links already have a target attribute. Don't wire up a
 									// click handler, but still add the icon
-		var linkText = nextLink.text.trim();
+		var linkText = nextLink.text.trim().toLowerCase();
 
 		nextLink.setAttribute('data-olint', '');
 
 		if (!excluded && linkText === '') {
 			nextLink.setAttribute('data-olint-empty', '');
+			isEmpty = true;
 		}
 
 		if (!excluded && nextLink.target) {
@@ -154,12 +154,37 @@ var processLinks = function(links, exclusions) {
 			}
 		}
 
+		if (isImageNode || isEmpty) {
+			var nextNode = nextLink;
+			var offsetParent = null;
+
+			if (nextLink.style.display === 'block') {
+				offsetParent = nextLink;
+			} else {
+				while (!offsetParent) {
+					if (nextNode.parentNode) {
+						nextNode = nextNode.parentNode;
+						if (nextNode === document) {
+							// Too far, fall back to the original link
+							offsetParent = nextLink;
+						} else if (nextNode.style.display === 'block') {
+							offsetParent = nextNode;
+						}
+					} else {
+						offsetParent = nextNode;
+					}
+				}
+			}
+
+			offsetParent.style.display = 'relative';
+		}
+
 		// If we haven't excluded it yet, add the click handler so it opens in a new tab
 		if (!excluded) {
 			// Add click handler
 			nextLink.addEventListener('click', function(e) {
 				e.preventDefault();
-				e.stopPropagation();
+				e.stopImmediatePropagation();
 				var link = e.target.closest('[data-olint]');
 
 				chrome.runtime.sendMessage( { message: 'openTab', url: link.href } );
@@ -178,6 +203,7 @@ var init = function() {
 			// Get the list of exclusions. Later we might merge in some excluded patterns from the user's
 			// synced settings here
 			chrome.runtime.sendMessage( { message: 'getExclusions', domain: location.host }, function(exclusions) {
+				var allLinks = document.querySelectorAll('a:not([data-olint])');
 				processLinks(allLinks, exclusions);
 			});
 

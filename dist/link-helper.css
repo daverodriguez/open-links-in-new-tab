@@ -13,7 +13,7 @@
 }
 
 a[data-olint][data-olint-empty]:not([data-olint-excluded]), a[data-olint][data-olint-type="image"] {
-	position: relative;
+	/*position: relative;*/
 	/*display: inline-block;*/
 }
 

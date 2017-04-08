@@ -3,7 +3,7 @@
   "name": "Open Links in New Tab",
   "short_name": "OLINT",
   "description": "A helper extension that makes in-page links open in a new tab",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "permissions": [
     "storage",
     "tabs",
