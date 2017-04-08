@@ -9,6 +9,28 @@ fetch('/data/exclusions.json').then(function(response) {
 	});
 });
 
+var getExclusions = function(domain = null) {
+	var exc = exclusions.all;
+
+	if (domain && exclusions.hasOwnProperty(domain)) {
+		var domainExclusions = exclusions[domain];
+
+		var exclusionCategories = ['urls', 'text', 'ancestors', 'classes'];
+
+		for (var nextCategory of exclusionCategories) {
+			if (domainExclusions.hasOwnProperty(nextCategory)) {
+				// Converting to a set removes duplicates
+				let nextSet = new Set( exc[nextCategory].concat( domainExclusions[nextCategory] ) );
+
+				// Use the spread operator to convert Set back to an array
+				exc[nextCategory] = [...nextSet ];
+			}
+		}
+	}
+
+	return exc;
+};
+
 var setIcon = function(domainEnabled) {
 	if (domainEnabled) {
 		chrome.browserAction.setIcon({
@@ -81,7 +103,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			});
 		});
 	} else if (request.message && request.message === 'getExclusions') {
-		sendResponse(exclusions);
+		sendResponse( getExclusions(request.domain || null) );
 	}
 });
 

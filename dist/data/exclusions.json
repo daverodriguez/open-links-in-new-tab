@@ -1,20 +1,27 @@
 {
-  "urls": [
+  "all": {
+    "urls": [
       "^#/", "^$", "^mailto:", "page/[0-9]+$", "facebook.com", "twitter.com", "rss[2/]?",
       "javascript:", "page="
-  ],
-  "text": [
+    ],
+    "text": [
       "^next", "^[^a-zA-Z\\d]?prev(ious)?", "older", "newer", "next page$", "sign in",
       "log in", "sign up", "^[0-9]+$", "^<$", "^>$", "^more", "load more", "see more",
       "view more"
-  ],
-  "ancestors": [
+    ],
+    "ancestors": [
       ".topbar", "#header", "[role=banner]", "nav", "[role=navigation]", ".facebook", ".twitter", ".pinterest",
       ".youtube", "#nav"
-  ],
-  "classes": [
-    "toggle", "signup", "register", "dropdown", "facebook", "twitter", "pinterest", "youtube",
-    "next", "prev(ious)?", "enlarge", "zoom", "social", "comment-count", "con",
-    "play-button", "fa-[a-zA-Z]", "con-[a-zA-Z]", "pager", "^nav"
-  ]
+    ],
+    "classes": [
+      "toggle", "signup", "register", "dropdown", "facebook", "twitter", "pinterest", "youtube",
+      "next", "prev(ious)?", "enlarge", "zoom", "social", "comment-count", "con",
+      "play-button", "fa-[a-zA-Z]", "con-[a-zA-Z]", "pager", "^nav"
+    ]
+  },
+  "en.wikipedia.org": {
+    "classes": [
+      "image"
+    ]
+  }
 }

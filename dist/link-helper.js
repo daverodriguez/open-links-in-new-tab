@@ -177,7 +177,7 @@ var init = function() {
 		if (domainExists) {
 			// Get the list of exclusions. Later we might merge in some excluded patterns from the user's
 			// synced settings here
-			chrome.runtime.sendMessage( { message: 'getExclusions' }, function(exclusions) {
+			chrome.runtime.sendMessage( { message: 'getExclusions', domain: location.host }, function(exclusions) {
 				processLinks(allLinks, exclusions);
 			});
 
