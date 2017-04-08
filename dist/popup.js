@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+	var manifest = chrome.runtime.getManifest();
+	document.querySelector('#version').innerHTML = 'version ' + manifest.version;
+
 	var currentDomain;
 
 	var setIcon = function(domainEnabled) {
