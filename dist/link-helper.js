@@ -213,10 +213,9 @@ var init = function() {
 					if (mutation.addedNodes) {
 						for (nextNode of mutation.addedNodes) {
 							if (nextNode.nodeType === Node.ELEMENT_NODE) {
-								var nodeLinks = nextNode.querySelectorAll('a:not([data-olint])');
+								let nodeLinks = nextNode.querySelectorAll('a:not([data-olint])');
 								if (nodeLinks.length) {
-
-									chrome.runtime.sendMessage( { message: 'getExclusions' }, function(exclusions) {
+									chrome.runtime.sendMessage( { message: 'getExclusions', domain: location.host }, function(exclusions) {
 										processLinks(nodeLinks, exclusions);
 									});
 								}
