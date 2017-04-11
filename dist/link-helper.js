@@ -154,29 +154,38 @@ var processLinks = function(links, exclusions) {
 			}
 		}
 
-		if (isImageNode || isEmpty) {
-			var nextNode = nextLink;
-			var offsetParent = null;
+		var offsetParent = null;
 
-			if (nextLink.style.display === 'block') {
-				offsetParent = nextLink;
-			} else {
-				while (!offsetParent) {
-					if (nextNode.parentNode) {
-						nextNode = nextNode.parentNode;
-						if (nextNode === document) {
-							// Too far, fall back to the original link
-							offsetParent = nextLink;
-						} else if (nextNode.style.display === 'block') {
-							offsetParent = nextNode;
-						}
-					} else {
+		if (nextLink.style.display === 'block') {
+			offsetParent = nextLink;
+		} else {
+			var nextNode = nextLink;
+			while (!offsetParent) {
+				if (nextNode.parentNode) {
+					nextNode = nextNode.parentNode;
+					if (nextNode === document) {
+						// Too far, fall back to the original link
+						offsetParent = nextLink;
+					} else if (nextNode.style.display === 'block') {
 						offsetParent = nextNode;
 					}
+				} else {
+					offsetParent = nextNode;
 				}
 			}
+		}
 
+		if (isImageNode || isEmpty) {
 			offsetParent.style.display = 'relative';
+		}
+
+		// Check to see if the offset parent is hidden
+		if (!excluded) {
+			if (nextLink.style.display == 'none' || nextLink.style.visibility == 'hidden' || nextLink.style.opacity === 0 ||
+				offsetParent.style.display == 'none' || offsetParent.style.visibility == 'hidden' || offsetParent.style.opacity === 0) {
+				excluded = true;
+				nextLink.setAttribute('data-olint-excluded', 'hidden');
+			}
 		}
 
 		// If we haven't excluded it yet, add the click handler so it opens in a new tab

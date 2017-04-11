@@ -11,12 +11,12 @@
     ],
     "ancestors": [
       ".topbar", "#header", "[role=banner]", "nav", "[role=navigation]", ".facebook", ".twitter", ".pinterest",
-      ".youtube", "#nav"
+      ".youtube", "#nav", "popover", "overlay"
     ],
     "classes": [
       "toggle", "signup", "register", "dropdown", "facebook", "twitter", "pinterest", "youtube",
       "next", "prev(ious)?", "enlarge", "zoom", "social", "comment-count", "con",
-      "play-button", "fa-[a-zA-Z]", "con-[a-zA-Z]", "pager", "^nav"
+      "play-button", "fa-[a-zA-Z]", "con-[a-zA-Z]", "pager", "^nav", "logo"
     ]
   },
   "en.wikipedia.org": {
