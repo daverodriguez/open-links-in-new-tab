@@ -19,12 +19,6 @@ var processLinks = function(links, exclusions) {
 			isEmpty = true;
 		}
 
-		if (!excluded && nextLink.target) {
-			//excluded = true;
-			softExcluded = true;
-			nextLink.setAttribute('data-olint-soft-excluded', 'target');
-		}
-
 		/*if (nextLink.getAttribute('rel') && nextLink.getAttribute('rel') === 'nofollow') {
 			excluded = true;
 			if (debug && debug.indexOf('rel') > -1) {
@@ -97,6 +91,56 @@ var processLinks = function(links, exclusions) {
 			}
 		}
 
+		var offsetParent = null;
+
+		if (nextLink.style.display === 'block') {
+			offsetParent = nextLink;
+		} else {
+			var nextNode = nextLink;
+			while (!offsetParent) {
+				if (nextNode.parentNode) {
+					nextNode = nextNode.parentNode;
+					if (nextNode === document) {
+						// Too far, fall back to the original link
+						offsetParent = nextLink;
+					} else if (nextNode.style.display === 'block') {
+						offsetParent = nextNode;
+					}
+				} else {
+					offsetParent = nextNode;
+				}
+			}
+		}
+
+		if (isImageNode || isEmpty) {
+			offsetParent.style.display = 'relative';
+		}
+
+		// Check to see if the offset parent is hidden
+		if (!excluded) {
+			if (nextLink.style.display == 'none' || nextLink.style.visibility == 'hidden' || nextLink.style.opacity === 0 ||
+				offsetParent.style.display == 'none' || offsetParent.style.visibility == 'hidden' || offsetParent.style.opacity === 0) {
+				excluded = true;
+				nextLink.setAttribute('data-olint-excluded', 'hidden');
+			}
+		}
+
+		if (!excluded) {
+			if (nextLink.rel.indexOf('noreferrer') >= 0 || nextLink.rel.indexOf('noopener') >= 0) {
+				excluded = true;
+				nextLink.setAttribute('data-olint-excluded', 'noreferrer');
+			}
+		}
+
+		// Soft excluded, last check before adding marker
+		if (!excluded && nextLink.target) {
+			//excluded = true;
+			softExcluded = true;
+			nextLink.setAttribute('data-olint-soft-excluded', 'target');
+		}
+
+		// Exclusion point -------------------------------->
+
 		// Add the OLINT marker element
 		if (!excluded) {
 			// Create an OLINT marker element (green "open in new tab" icon)
@@ -151,40 +195,6 @@ var processLinks = function(links, exclusions) {
 				}
 			} else {
 				nextLink.appendChild(olintMarker);
-			}
-		}
-
-		var offsetParent = null;
-
-		if (nextLink.style.display === 'block') {
-			offsetParent = nextLink;
-		} else {
-			var nextNode = nextLink;
-			while (!offsetParent) {
-				if (nextNode.parentNode) {
-					nextNode = nextNode.parentNode;
-					if (nextNode === document) {
-						// Too far, fall back to the original link
-						offsetParent = nextLink;
-					} else if (nextNode.style.display === 'block') {
-						offsetParent = nextNode;
-					}
-				} else {
-					offsetParent = nextNode;
-				}
-			}
-		}
-
-		if (isImageNode || isEmpty) {
-			offsetParent.style.display = 'relative';
-		}
-
-		// Check to see if the offset parent is hidden
-		if (!excluded) {
-			if (nextLink.style.display == 'none' || nextLink.style.visibility == 'hidden' || nextLink.style.opacity === 0 ||
-				offsetParent.style.display == 'none' || offsetParent.style.visibility == 'hidden' || offsetParent.style.opacity === 0) {
-				excluded = true;
-				nextLink.setAttribute('data-olint-excluded', 'hidden');
 			}
 		}
 
