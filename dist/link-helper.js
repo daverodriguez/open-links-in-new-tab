@@ -1,4 +1,9 @@
-// Exclusions are now loaded at plugin runtime from exclusions.json
+/**
+ * Process all the links on the page that haven't already been marked as excluded (or all the links in the most recently
+ * observed mutation set
+ * @param links
+ * @param exclusions
+ */
 var processLinks = function(links, exclusions) {
 	var excludedUrls = exclusions.urls;
 	var excludedAncestors = exclusions.ancestors;
@@ -91,9 +96,39 @@ var processLinks = function(links, exclusions) {
 			}
 		}
 
+		// Find the longest text node inside this link
+		var longestNode = null;
+		var getTextNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_TEXT);
+		while (getTextNodes.nextNode()) {
+			var nextNode = getTextNodes.currentNode;
+			var nextNodeExcluded = false;
+
+			if (nextNode.parentNode.nodeName.toLowerCase() === 'noscript') {
+				nextNodeExcluded = true;
+			}
+
+			if (!longestNode || nextNode.length > longestNode.length || !nextNodeExcluded) {
+				longestNode = nextNode;
+			}
+		}
+
+		// If there's still no longest node, maybe this is an image
+		var isImageNode = false;
+
+		if (!longestNode || longestNode.nodeValue.trim() === '') {
+			var getImageNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_ELEMENT);
+			while (getImageNodes.nextNode()) {
+				var nextNode = getImageNodes.currentNode;
+				if (nextNode.nodeName.toLowerCase() === 'img') {
+					longestNode = nextNode;
+					isImageNode = true;
+				}
+			}
+		}
+
 		var offsetParent = null;
 
-		if (nextLink.style.display === 'block') {
+		if (nextLink.style.display === 'block' || isImageNode) {
 			offsetParent = nextLink;
 		} else {
 			var nextNode = nextLink;
@@ -113,7 +148,10 @@ var processLinks = function(links, exclusions) {
 		}
 
 		if (isImageNode || isEmpty) {
-			offsetParent.style.display = 'relative';
+			var offsetParentStyle = getComputedStyle(offsetParent);
+			if (offsetParentStyle.position === 'static') {
+				offsetParent.style.position = 'relative';
+			}
 		}
 
 		// Check to see if the offset parent is hidden
@@ -141,41 +179,17 @@ var processLinks = function(links, exclusions) {
 
 		// Exclusion point -------------------------------->
 
+		// Remove any existing OLINT markers
+		var olintMarkers = nextLink.querySelectorAll('.olint-marker');
+		for (var n of olintMarkers) {
+			n.parentNode.removeChild(n);
+		}
+
 		// Add the OLINT marker element
 		if (!excluded) {
 			// Create an OLINT marker element (green "open in new tab" icon)
 			var olintMarker = document.createElement('i');
 			olintMarker.className = 'olint-marker';
-
-			// Find the longest text node inside this link
-			var longestNode = null;
-			var getTextNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_TEXT);
-			while (getTextNodes.nextNode()) {
-				var nextNode = getTextNodes.currentNode;
-				var nextNodeExcluded = false;
-
-				if (nextNode.parentNode.nodeName.toLowerCase() === 'noscript') {
-					nextNodeExcluded = true;
-				}
-
-				if (!longestNode || nextNode.length > longestNode.length || !nextNodeExcluded) {
-					longestNode = nextNode;
-				}
-			}
-
-			// If there's still no longest node, maybe this is an image
-			var isImageNode = false;
-
-			if (!longestNode || longestNode.nodeValue.trim() === '') {
-				var getImageNodes = document.createTreeWalker(nextLink, NodeFilter.SHOW_ELEMENT);
-				while (getImageNodes.nextNode()) {
-					var nextNode = getImageNodes.currentNode;
-					if (nextNode.nodeName.toLowerCase() === 'img') {
-						longestNode = nextNode;
-						isImageNode = true;
-					}
-				}
-			}
 
 			// Add OLINT marker directly after the longest text node, or if none was found, append it as the last
 			// child of the link
@@ -212,6 +226,10 @@ var processLinks = function(links, exclusions) {
 	}
 };
 
+/**
+ * Get the most recent list of exclusions and process links. After page load, continue to listen for DOM Mutations
+ * that result in new links being added.
+ */
 var init = function() {
 	// Check to see if the plugin is enabled for this domain
 	chrome.storage.sync.get(function(settings) {
@@ -250,8 +268,18 @@ var init = function() {
 			});
 		}
 	});
-}
 
+	// Keep track of the last right clicked link
+	window.olintLastRightClickedLink = null;
+
+	window.addEventListener('contextmenu', function(e) {
+		window.olintLastRightClickedLink = e.target.closest('[data-olint]');
+	});
+};
+
+/**
+ * Kick off link processing on page load
+ */
 if (document.fonts.size && document.fonts.size > 0) {
 	document.fonts.ready.then(function() {
 		init();
@@ -259,3 +287,82 @@ if (document.fonts.size && document.fonts.size > 0) {
 } else {
 	init();
 }
+
+var exclusionCategories = ['urls', 'text', 'ancestors', 'classes'];
+
+/**
+ * Attempts to find the most useful exclusion for a particular link
+ * @param HTMLLinkELement link
+ */
+var findExclusions = function(link) {
+	var linkText = link.text.trim().toLowerCase();
+	var exclusionFound = false;
+
+	var exc = {
+		domain: location.host
+	};
+
+	if (link.id) {
+		exc.ancestors = link.id;
+	}
+
+	if (!exclusionFound && link.closest('ul')) {
+		var ul = link.closest('ul');
+		if (ul.id) {
+			exc.ancestors = '#' + ul.id;
+			exclusionFound = true;
+		} else if (ul.className) {
+			//exc.ancestors = '.' + ul.classList.join('.');
+			//exclusionFound = true;
+		}
+	}
+
+	if (!exclusionFound && link.className) {
+		exc.classes = '#' . link.className;
+		exclusionFound = true;
+	}
+
+	if (!exclusionFound && linkText !== '') {
+		exc.text = linkText
+	}
+
+	// Fallback: exclude by URL
+	exc.urls = link.getAttribute('href');
+
+	return exc;
+};
+
+/**
+ * Listen for messages from the extension requesting the last-clicked link to be excluded or included
+ */
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	if (request && request.message === 'excludeLastLink' && window.olintLastRightClickedLink) {
+		var l = window.olintLastRightClickedLink;
+		var exclusion = findExclusions(l);
+		//console.log(exclusion);
+
+		chrome.storage.sync.get(function(settings) {
+			var personalExclusions = settings.exclusions || {};
+			personalExclusions[exclusion.domain] = personalExclusions[exclusion.domain] || {};
+
+			for (var nextCategory of exclusionCategories) {
+				if (exclusion.hasOwnProperty(nextCategory)) {
+					let n = personalExclusions[exclusion.domain][nextCategory] || [];
+
+					// Converting to a set removes duplicates
+					let nextSet = new Set( n.concat( exclusion[nextCategory] ) );
+
+					// Use the spread operator to convert Set back to an array
+					personalExclusions[exclusion.domain][nextCategory] = [...nextSet ];
+				}
+			}
+
+			settings.exclusions = personalExclusions;
+			chrome.storage.sync.set(settings, function(response) {
+				chrome.runtime.sendMessage( {message: 'updateExclusions'} );
+			});
+		});
+
+
+	}
+});

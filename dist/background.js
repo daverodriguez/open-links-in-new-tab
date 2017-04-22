@@ -1,21 +1,62 @@
 var currentDomain;
 var lastOpenedTab;
 var exclusions;
+var globalExclusions;
+var personalExclusions;
+var exclusionCategories = ['urls', 'text', 'ancestors', 'classes'];
 
 // Load exclusion list
 fetch('/data/exclusions.json').then(function(response) {
 	response.json().then(function(json) {
-		exclusions = json;
+		exclusions = globalExclusions = json;
+		reloadPersonalExclusions();
 	});
 });
+
+// Load personal exclusions and merge them with the global set
+var reloadPersonalExclusions = function() {
+	chrome.storage.sync.get(function(settings) {
+		exclusions = globalExclusions;
+		personalExclusions = settings.exclusions || {};
+
+		// The object we receive will be an array of domains, each with one or more categories of exclusions inside
+		for (let nextDomain in personalExclusions) {
+			let nextDomainExclusions = personalExclusions[nextDomain];
+
+			// If our global exclusions object doesn't have a key for a domain, add it
+			if (!exclusions.hasOwnProperty(nextDomain)) {
+				exclusions[nextDomain] = {};
+			}
+
+			// Now loop the global exclusion categories (urls, text, ancestors, etc...)
+			for (let nextCategory of exclusionCategories) {
+
+				// If the current personal exclusion domain has an entry for this category...
+				if (nextDomainExclusions.hasOwnProperty(nextCategory)) {
+
+					// If the global exclusions object doesn't have a key for this domain and category, add it
+					if (!exclusions[nextDomain].hasOwnProperty(nextCategory)) {
+						exclusions[nextDomain][nextCategory] = [];
+					}
+
+					// Converting to a set removes duplicates
+					let nextSet = new Set( exclusions[nextDomain][nextCategory].concat( nextDomainExclusions[nextCategory] ) );
+
+					// Use the spread operator to convert Set back to an array
+					exclusions[nextDomain][nextCategory] = [...nextSet ];
+				}
+			}
+		}
+
+		//console.log(exclusions);
+	});
+}
 
 var getExclusions = function(domain = null) {
 	var exc = exclusions.all;
 
 	if (domain && exclusions.hasOwnProperty(domain)) {
 		var domainExclusions = exclusions[domain];
-
-		var exclusionCategories = ['urls', 'text', 'ancestors', 'classes'];
 
 		for (var nextCategory of exclusionCategories) {
 			if (domainExclusions.hasOwnProperty(nextCategory)) {
@@ -104,6 +145,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		});
 	} else if (request.message && request.message === 'getExclusions') {
 		sendResponse( getExclusions(request.domain || null) );
+	} else if (request.message && request.message === 'updateExclusions') {
+		reloadPersonalExclusions();
+		chrome.tabs.query({active: true, currentWindow: true}, function(tab) {
+			chrome.tabs.reload(tab.tabId);
+		});
 	}
 });
 
@@ -112,10 +158,25 @@ chrome.contextMenus.create({
 	type: chrome.contextMenus.ItemType.NORMAL,
 	title: 'Open in this tab',
 	contexts: [chrome.contextMenus.ContextType.LINK],
+	documentUrlPatterns: ['http://*/*', 'https://*/*'],
 	onclick: function(context) {
 		chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 			var tab = tabs[0];
 			chrome.tabs.update(tab.id, {url: context.linkUrl} );
 		});
+	}
+});
+
+chrome.contextMenus.create({
+	type: chrome.contextMenus.ItemType.NORMAL,
+	title: 'Exclude this link',
+	documentUrlPatterns: ['http://*/*', 'https://*/*'],
+	contexts: [chrome.contextMenus.ContextType.LINK],
+	onclick: function(context) {
+		chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+			var tab = tabs[0];
+			chrome.tabs.sendMessage(tab.id, {message:'excludeLastLink'});
+		});
+
 	}
 });

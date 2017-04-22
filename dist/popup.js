@@ -60,9 +60,9 @@ document.addEventListener('DOMContentLoaded', function() {
 				enabledDomains.push(currentDomain);
 			}
 
-			chrome.storage.sync.set({
-				enabledDomains: enabledDomains
-			});
+			settings.enabledDomains = enabledDomains;
+
+			chrome.storage.sync.set(settings);
 
 			setIcon(checked);
 			setStateLabel(checked);
